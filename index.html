@@ -1,1 +1,296 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+body {
+  background-color: #F1F3F3    
+}
+.axis {
+	font: 15px sans-serif;
+}
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #D4D8DA;
+  stroke-width: 1px;
+  shape-rendering: crispEdges;
+}
+.toolTip {
+  position: absolute;
+  display: none;
+  min-width: 80px;
+  height: auto;
+  background: none repeat scroll 0 0 #ffffff;
+  border: 1px solid #6F257F;
+  padding: 14px;
+  text-align: center;
+}
 
+.Slides {display:none}
+
+</style>
+<head>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+</head>
+
+<body>
+	
+	<h1> Dish and Restaurant Recommendation System </h1>
+	<h2 id="title"> Data Analysis for Chinese Cuisine</h2>
+	<div>
+		<button id="btn1" style="background-color:green; padding: 5px 10px;left:20%;font-size:20px" onClick="showEssay();"> About the Application </button>
+		<button id="btn2" class="Slides" style="background-color:orange; padding: 5px 10px;right:50%;font-size:20px" onClick="window.location.reload();"> Click to Go Back </button>
+	</div>
+	<div id="essayID" class="Slides">
+		<h3>1. Data Source: </h3>
+		<p>The analysis is based on Yelp Data Set, which includes local business, textual review, and 
+		   rating scores for businesses and individual reviews. Here, a recommendation system is developed for the Chinese cuisine. This application
+		   follows the webpage layout designed in the Data Visualization course. It is useful for customers to browse the most popular dishes for Chinese cosine and find the list of restaurants that
+		   are famous for a selected dish.
+		</p>
+		<h3>2. Functionalities: </h3>
+		<p> <strong>Scenes:</strong> There are two scenes</p> 
+		<pre>          1) Scene #1 has a bar chart for the first 20 most popular dishes</pre>
+		<pre>          2) Scene #2 shows a list of restaurants famous for a selected dish</pre>
+		
+		<p> <strong>Triggers:</strong> Implemented in the following two ways</p> 
+		<pre>          1) Button "About the Application" shows the system introduction when clicked</pre>
+		<pre>          2) Button "Click to Go Back" enables users to return to the orignal page when clicked</pre>
+		<pre>          3) Scene #2 is loaded by clicking the the corresponding bar </pre>
+		
+		<h3>3. Conclusions: </h3>
+		<p> 1. Most of the top-ranking restaurants have over 3.4 rating scores, but there are few exceptions </p>
+		<p> 2. Some low-rated restaurants may also have few dishes that are very popular </p>
+		<p> 3. Similarly, it can be enhanced to include the recommendation system for other cuisines </p>
+		
+		<h3>4. References: </h3>
+	    
+	    <p>1. <a href="https://bl.ocks.org/alandunning/274bf248fd0f362d64674920e85c1eb7">https://bl.ocks.org/alandunning/274bf248fd0f362d64674920e85c1eb7</a> </p>
+		<p>2. <a href="https://stackoverflow.com/questions/39023154/how-to-make-a-color-gradient-bar-using-d3js">https://stackoverflow.com/questions/39023154/how-to-make-a-color-gradient-bar-using-d3js</a></p>
+	</div>	
+	
+	<svg id="scene1"  width="960" height="700"></svg>
+	<svg id="scene2"  width="960" height="700"></svg>
+
+
+	<script>
+	var svg1 = d3.select("#scene1"),
+		margin = {top: 20, right: 20, bottom: 150, left: 120},
+		width = +svg1.attr("width") - margin.left - margin.right,
+		height = +svg1.attr("height") - margin.top - margin.bottom;
+	
+	var svg2 = d3.select("#scene2"),
+		margin = {top: 20, right: 20, bottom: 250, left: 120},
+		width = +svg2.attr("width") - margin.left - margin.right,
+		height = +svg2.attr("height") - margin.top - margin.bottom;
+		
+	var tooltip = d3.select("body").append("div").attr("class", "toolTip");
+
+	var x = d3.scaleBand().rangeRound([0, width]).padding(0.1),
+		y = d3.scaleLinear().rangeRound([height, 0]);
+  
+	var colours = d3.scaleOrdinal(d3.schemeCategory10);
+
+	var g1 = svg1.append("g")
+		.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+		
+	var g2 = svg2.append("g")
+		.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+	d3.json("https://tspeng.github.io/DMC_App/data/data2.json", function(error, data) {
+		if (error) throw error;
+		x.domain(data.map(function(d) { return d.name; }));
+		y.domain([0, d3.max(data, function(d) { return d.value; })]);
+
+		g1.append("g")
+			.attr("class", "axis axis--x")
+			.attr("transform", "translate(0," + height + ")")
+			.call(d3.axisBottom(x))
+				.selectAll("text")	
+				.style("text-anchor", "end")
+				.attr("dx", "-.8em")
+				.attr("dy", ".15em")
+				.attr("transform", "rotate(-65)");
+
+		g1.append("g")
+			.attr("class", "axis axis--y")
+			.call(d3.axisLeft(y).ticks(5).tickFormat(function(d) { return d; }).tickSizeInner([-width]))
+		  .append("text")
+			.attr("transform", "rotate(-90)")
+			.attr("y", 6)
+			.attr("dy", "0.71em")
+			.attr("text-anchor", "end")
+			.attr("fill", "#5D6971");
+		
+	    //g1 y-axis label
+		g1.append("text")
+		  .attr("y", -margin.left/2)
+		  .attr("x",0 - (height / 2))
+		  .attr("dy", "0.32em")
+		  .attr("fill", "#000")
+		  .attr("font-weight", "bold")
+		  .attr("text-anchor", "middle")
+		  .attr("transform", "rotate(-90)")
+		  .text("Review rating weighted support");	
+		
+		g1.append("text")             
+			  .attr("x", width/2)
+			  .attr("y",  0)
+			  .attr("fill", "#000")
+			  .attr("font-weight", "bold")
+			  .style("text-anchor", "middle")
+			  .text("Top 20 most popular dishes for Chinese cuisine");   
+
+		g1.selectAll(".bar")
+			.data(data)
+		  .enter().append("rect")
+			.attr("x", function(d) { return x(d.name); })
+			.attr("y", function(d) { return y(d.value); })
+			.attr("width", x.bandwidth())
+			.attr("height", function(d) { return height - y(d.value); })
+			.attr("fill", function(d,i) { return colours.range()[0]; })
+			.on("mousemove", function(d){
+				tooltip
+				  .style("left", d3.event.pageX - 50 + "px")
+				  .style("top", d3.event.pageY - 100 + "px")
+				  .style("display", "inline-block")
+				  .html((d.name) +"<br><br>"+"Click Me");
+			})
+			.on("mouseout", function(d){ tooltip.style("display", "none");})
+			.on("click",function(d){
+			
+				tooltip.style("display", "none");
+				svg1.selectAll("g > *").remove();  //Remove g elements first
+				createCharts(d.name,d.restaurant,d.resvalue,d.rescolor);
+				
+				var element = document.getElementById("btn2");
+				element.classList.remove("Slides");
+				
+				document.getElementById("title").classList.remove("Slides")
+				document.getElementById("title").innerHTML = "Restaurant Ranking for Dish: "+ d.name;
+
+				svg1.classed("Slides",true);
+				svg2.classed("Slides",false);});  // window.location.reload();
+		});
+		
+		function createCharts (dish,restaurant,resvalue,rescolor) {
+		
+			x.domain(restaurant);
+			y.domain([0, d3.max(resvalue)]);
+			
+			var datadict=[];
+			for (i=0; i<restaurant.length;i++){
+			    datadict.push({
+			    	"restaurant":restaurant[i],
+			    	"resvalue":resvalue[i],
+			    	"rescolor":rescolor[i]
+			    })
+			}
+			
+			g2.append("g")
+			.attr("class", "axis axis--x")
+			.attr("transform", "translate(0," + height + ")")
+			.call(d3.axisBottom(x))
+				.selectAll("text")	
+				.style("text-anchor", "end")
+				.style("font-size","15px")
+				.attr("dx", "-.8em")
+				.attr("dy", ".15em")
+				.attr("transform", "rotate(-45)");
+
+			g2.append("g")
+				.attr("class", "axis axis--y")
+				.call(d3.axisLeft(y).ticks(5).tickFormat(function(d) { return d; }).tickSizeInner([-width]))
+			  .append("text")
+				.attr("transform", "rotate(-90)")
+				.attr("y", 6)
+				.attr("dy", "0.71em")
+				.attr("text-anchor", "end")
+				.attr("fill", "#5D6971");
+				    //g1 y-axis label
+			g2.append("text")
+			  .attr("y", -margin.left/2)
+			  .attr("x",0 - (height / 2))
+			  .attr("dy", "0.32em")
+			  .attr("fill", "#000")
+			  .attr("font-weight", "bold")
+			  .attr("text-anchor", "middle")
+			  .attr("transform", "rotate(-90)")
+			  .text("Restaurant ranking score for dish: "+dish);	
+			
+		  	g2.append("text")             
+			  .attr("x", width/2)
+			  .attr("y",  0)
+			  .attr("fill", "#000")
+			  .attr("font-weight", "bold")
+			  .style("text-anchor", "middle")
+			  .text("Top 20 most popular restaurants for dish: "+dish);      
+			
+			var defs = g2.append('defs');
+
+			var lg = defs.append('linearGradient')
+			 .attr('id', 'Gradient')
+			 .attr('x1', 0)
+			 .attr('x2', 0)
+			 .attr('y1', 0)
+			 .attr('y2', 1);
+
+			lg.append('stop')
+			 .attr('offset', '0%')
+			 .attr('stop-color', '#FF0000');
+			
+			lg.append('stop')
+			 .attr('offset', '50%')
+			 .attr('stop-color', '#FFFF00');
+
+			lg.append('stop')
+			 .attr('offset', '100%')
+			 .attr('stop-color', '#00FF00');
+
+			//add color scale bar
+			g2.append('rect')
+			 .attr('x', width/2)
+			 .attr('y', 50)
+			 .attr('width', 20)
+			 .attr('height', 120)
+			 .style("fill", "url(#Gradient)");
+			 
+			g2.append("text")
+			    .attr("x", width/2+20)
+				.attr("y", 50)
+				.text('Restaurant rating=1')
+			g2.append("text")
+			    .attr("x", width/2+20)
+				.attr("y", 50+120)
+				.text('Restaurant rating=5')
+ 
+			g2.selectAll(".bar")
+				.data(datadict)
+			  .enter().append("rect")
+				.attr("x", function(d) { return x(d.restaurant); })
+				.attr("y", function(d) { return y(d.resvalue); })
+				.attr("width", x.bandwidth())
+				.attr("height", function(d) { return height - y(d.resvalue); })
+				.attr("fill", function(d,i) { return rescolor[i]; })
+				.on("mousemove", function(d){
+					tooltip
+					  .style("left", d3.event.pageX - 50 + "px")
+					  .style("top", d3.event.pageY - 70 + "px")
+					  .style("display", "inline-block")
+					  .html((d.restaurant) +"<br>" + Math.round(d.resvalue*1000)/1000);
+			     })
+			     .on("mouseout", function(d){ tooltip.style("display", "none");})
+		}
+		
+		function showEssay(){
+			document.getElementById("title").classList.add("Slides")
+				
+			document.getElementById("btn1").classList.add("Slides");
+			document.getElementById("btn2").classList.remove("Slides");
+
+			document.getElementById("essayID").classList.remove("Slides");
+			
+			svg1.classed("Slides",true);
+			svg2.classed("Slides",true);
+		}
+	</script>
+</body>
